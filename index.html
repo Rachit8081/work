@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Celebration Form</title>
+  <style>
+    /* Body and background styling */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      background: linear-gradient(45deg, #ff9a9e, #fad0c4, #fbc2eb, #a18cd1);
+      background-size: 400% 400%;
+      animation: gradientBG 8s infinite;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      color: white;
+    }
+
+    h1 {
+      font-size: 3rem;
+      text-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+    }
+
+    form, .thankyou {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+      max-width: 400px;
+      width: 90%;
+      display: none;
+    }
+
+    form.active {
+      display: block;
+    }
+
+    input, button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 12px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    input {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      outline: none;
+    }
+
+    button {
+      background: #ff6b6b;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+    }
+
+    button:hover {
+      background: #f5cd79;
+      color: black;
+      transform: scale(1.1);
+    }
+
+    .thankyou {
+      text-align: center;
+    }
+
+    .thankyou h2 {
+      font-size: 2.5rem;
+      color: #ff6b6b;
+      text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+    }
+
+    .confetti {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎉 Welcome to the Celebration Form 🎉</h1>
+    <!-- Form -->
+    <form id="form" class="active">
+      <input type="date" name="date" required>
+      <input type="text" name="name" placeholder="Name" required>
+      <input type="text" name="docs1" placeholder="Document 1" required>
+      <input type="text" name="docs2" placeholder="Document 2" required>
+      <input type="text" name="docs3" placeholder="Document 3" required>
+      <input type="text" name="work" placeholder="Work" required>
+      <input type="text" name="mobile" placeholder="Mobile" required>
+      <input type="text" name="agent" placeholder="Agent" required>
+      <button type="submit">Submit</button>
+    </form>
+
+    <!-- Thank You Section -->
+    <div class="thankyou">
+      <h2>🎊 Thank You! 🎊</h2>
+      <button id="fill-again">Fill Again</button>
+    </div>
+
+    <canvas class="confetti" id="confetti"></canvas>
+  </div>
+
+  <script>
+    // Confetti Animation
+    const canvas = document.getElementById("confetti");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const confettiPieces = Array.from({ length: 300 }).map(() => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 7 + 3,
+      color: `hsl(${Math.random() * 360}, 100%, 70%)`,
+      speed: Math.random() * 3 + 1,
+      angle: Math.random() * Math.PI * 2
+    }));
+
+    function drawConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      confettiPieces.forEach((p) => {
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+
+        p.y += p.speed;
+        p.x += Math.sin(p.angle);
+
+        if (p.y > canvas.height) p.y = -p.size;
+        if (p.x > canvas.width) p.x = -p.size;
+      });
+
+      requestAnimationFrame(drawConfetti);
+    }
+
+    drawConfetti();
+
+    // Form Submission Logic
+    const form = document.getElementById("form");
+    const thankYouSection = document.querySelector(".thankyou");
+    const fillAgainBtn = document.getElementById("fill-again");
+
+    const url = "https://script.google.com/macros/s/AKfycbwhWgdck9dYBs1DLtYdEy0Wbgo0r3Hduok8T3Ue03BefpvluGPYBPYQrGjhE7nUTkKeaQ/exec"; // Google Apps Script URL
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const data = {};
+      formData.forEach((value, key) => (data[key] = value));
+
+      await fetch(url, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" },
+      }).catch((error) => console.error("Error:", error));
+
+      form.classList.remove("active");
+      thankYouSection.style.display = "block";
+    });
+
+    // Fill Again Logic
+    fillAgainBtn.addEventListener("click", () => {
+      form.reset();
+      thankYouSection.style.display = "none";
+      form.classList.add("active");
+    });
+  </script>
+</body>
+</html>
